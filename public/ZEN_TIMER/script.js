@@ -352,14 +352,15 @@ function generateShareImage(stats) {
     ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-light').trim() || '#FAF7F2';
     ctx.fillText('Best session: ' + (best ? (best + ' min') : '—'), 40, 170);
 
-    // Badges (emoji)
-    const unlockedEls = Array.from(document.querySelectorAll('.badge.unlocked .badge-icon'));
-    const emojis = unlockedEls.map(el => el.textContent.trim()).slice(0,6);
-    ctx.font = '48px serif';
+    // Badges 
+    const unlockedEls = Array.from(document.querySelectorAll('.badge.unlocked .badge-name'));
+    const names = unlockedEls.map(el => el.textContent.trim()).slice(0,4);
+    ctx.font = '20px Poppins, sans-serif';
+    ctx.fillStyle = '#fbbf24';
     let startX = 40;
     let y = 250;
-    emojis.forEach((e, i) => {
-        ctx.fillText(e, startX + i * 72, y);
+    names.forEach((name, i) => {
+        ctx.fillText('🏆 ' + name, startX + i * 220, y);
     });
 
     // Summary box
