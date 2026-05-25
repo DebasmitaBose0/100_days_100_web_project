@@ -36,6 +36,7 @@ async function processCommand(cmd) {
             printLine("Available commands:", 'system-msg');
             printLine("  fetch --joke      : Get a programming joke", 'highlight');
             printLine("  sudo entertain_me : Bypass permissions to get a joke", 'highlight');
+            printLine("  roast             : Interactively roast your own code snippet!", 'highlight');
             printLine("  clear             : Clear the terminal output", 'highlight');
             break;
 
@@ -48,9 +49,19 @@ async function processCommand(cmd) {
             await fetchProgrammingJoke();
             break;
 
+        case 'roast':
+            printLine("Enter the line of code you want roasted: (e.g. 'while(true) {}')", 'system-msg');
+            input.placeholder = "type code snippet here...";
+            break;
+
         default:
-            printLine(`bash: command not found: ${cmd}`, 'error-msg');
-            printLine(`Type 'help' for available commands.`, 'system-msg');
+            if (input.placeholder === "type code snippet here...") {
+                input.placeholder = "";
+                await roastCode(cmd);
+            } else {
+                printLine(`bash: command not found: ${cmd}`, 'error-msg');
+                printLine(`Type 'help' for available commands.`, 'system-msg');
+            }
     }
 }
 
@@ -92,6 +103,28 @@ async function fetchProgrammingJoke() {
     } catch (error) {
         printLine("Error: Failed to fetch joke. Are you connected to the internet?", 'error-msg');
     }
+}
+
+async function roastCode(code) {
+    printLine("Analyzing code structure...", 'system-msg');
+    await sleep(800);
+
+    const roasts = [
+        "Your code is so messy, even git clone refuses to download it.",
+        "That logic is so circular, it got nominated for an Oscar in cinematography.",
+        "You write code like a toddler playing with random keyboard buttons.",
+        "Is this JavaScript or did a cat just step on your keyboard?",
+        "This code looks like it was written in 1995, but without any of the retro charm.",
+        "I've seen better structured code in a bowl of alphabet soup.",
+        "If compile time was a race, your code would still be putting its shoes on.",
+        "This function is so long and nested, it has its own zip code."
+    ];
+
+    const randomIndex = Math.floor(Math.random() * roasts.length);
+    const chosenRoast = roasts[randomIndex];
+
+    await typeWriter(`[Roast]: ${chosenRoast}`, 'joke-punchline');
+    printLine("", "");
 }
 
 // Utility function to print static text immediately
