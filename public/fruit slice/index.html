@@ -78,13 +78,29 @@
   }
 
   .life-icon {
-    font-size: 26px;
-    filter: drop-shadow(0 0 6px #ff4444);
-    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
-  .life-icon.lost {
-    filter: grayscale(1) opacity(0.3);
-    transform: scale(0.8);
+  .heart-svg {
+    width: 28px;
+    height: 28px;
+    fill: #ff2a5f;
+    filter: drop-shadow(0 0 6px rgba(255, 42, 95, 0.8));
+    animation: heartBeat 1.2s infinite alternate ease-in-out;
+    transition: all 0.4s;
+  }
+  @keyframes heartBeat {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.12); }
+  }
+  .life-icon.lost .heart-svg {
+    fill: #3a3a4a;
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+    animation: none;
+    transform: scale(0.75) rotate(-15deg);
+    opacity: 0.4;
   }
 
   #level-box {
@@ -312,9 +328,15 @@
     <div id="score">0</div>
   </div>
   <div id="lives-box">
-    <span class="life-icon" id="life-1">❤️</span>
-    <span class="life-icon" id="life-2">❤️</span>
-    <span class="life-icon" id="life-3">❤️</span>
+    <span class="life-icon" id="life-1">
+      <svg class="heart-svg" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    </span>
+    <span class="life-icon" id="life-2">
+      <svg class="heart-svg" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    </span>
+    <span class="life-icon" id="life-3">
+      <svg class="heart-svg" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    </span>
   </div>
   <div id="level-box">
     <div id="level-label">LEVEL</div>
