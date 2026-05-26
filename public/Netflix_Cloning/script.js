@@ -1,4 +1,4 @@
-﻿// ============= SAMPLE MOVIES DATA ============= 
+// ============= SAMPLE MOVIES DATA ============= 
 const MOVIES_DATA = [
     {
         id: 1,
@@ -292,6 +292,22 @@ function renderMovies() {
 }
 
 function createMovieCards(movies) {
+    if (!document.getElementById('netflix-rating-style')) {
+        const s = document.createElement("style");
+        s.id = 'netflix-rating-style';
+        s.innerHTML = `
+            .rating-star-svg {
+                width: 14px;
+                height: 14px;
+                fill: #ffb800; /* Rich gold rating star */
+                margin-right: 5px;
+                vertical-align: middle;
+                filter: drop-shadow(0 0 3px rgba(255, 184, 0, 0.5));
+                display: inline-block;
+            }
+        `;
+        document.head.appendChild(s);
+    }
     return movies.map(movie => `
         <div class="movie-card">
             <div class="movie-poster">
@@ -299,7 +315,7 @@ function createMovieCards(movies) {
             </div>
             <div class="movie-info">
                 <div class="movie-title">${movie.title}</div>
-                <div class="movie-rating">⭐ ${movie.rating}</div>
+                <div class="movie-rating"><svg class="rating-star-svg" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>${movie.rating}</div>
             </div>
         </div>
     `).join('');
