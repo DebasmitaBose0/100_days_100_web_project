@@ -192,6 +192,13 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 1.1rem; flex-shrink: 0;
     }
+    .cat-svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+      display: inline-block;
+      vertical-align: middle;
+    }
     .tx-icon.income  { background: rgba(106,255,203,.1); }
     .tx-icon.expense { background: rgba(255,106,155,.1); }
 
@@ -429,14 +436,23 @@
   let currentType = 'income';
   let currentFilter = 'all';
 
-  const CAT_ICONS = {
-    salary:'💼', food:'🍔', transport:'🚗',
-    shopping:'🛍️', bills:'💡', health:'❤️', other:'📦'
-  };
   const CAT_COLORS = {
     salary:'#6affcb', food:'#ffb86a', transport:'#6aaaff',
     shopping:'#ff6a9b', bills:'#7c6aff', health:'#ff9a6a', other:'#8c8ca0'
   };
+
+  function getCategorySVG(cat) {
+    const svgs = {
+      salary: `<svg class="cat-svg" viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>`,
+      food: `<svg class="cat-svg" viewBox="0 0 24 24"><path d="M12 2C8.43 2 5.23 3.54 3.01 6.02h17.98C18.77 3.54 15.57 2 12 2zm0 18c3.57 0 6.77-1.54 8.99-4.02H3.01C5.23 18.46 8.43 20 12 20zM2 12c0 .55.45 1 1 1h18c.55 0 1-.45 1-1s-.45-1-1-1H3c-.55 0-1 .45-1 1z"/></svg>`,
+      transport: `<svg class="cat-svg" viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>`,
+      shopping: `<svg class="cat-svg" viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>`,
+      bills: `<svg class="cat-svg" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>`,
+      health: `<svg class="cat-svg" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`,
+      other: `<svg class="cat-svg" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 12H9v-2h6v2zm0-4H9V8h6v2z"/></svg>`
+    };
+    return svgs[cat] || svgs.other;
+  }
 
   // ── Init ──
   function init() {
@@ -537,7 +553,7 @@
     }
     list.innerHTML = filtered.map(t=>`
       <div class="tx-item">
-        <div class="tx-icon ${t.type} cat-${t.cat}">${CAT_ICONS[t.cat]||'📦'}</div>
+        <div class="tx-icon ${t.type} cat-${t.cat}">${getCategorySVG(t.cat)}</div>
         <div class="tx-info">
           <div class="tx-name">${esc(t.desc)}</div>
           <div class="tx-meta">${t.cat} · ${fmtDate(t.date)}</div>
@@ -600,7 +616,7 @@
     legend.innerHTML=sorted.slice(0,5).map(([cat,val])=>`
       <div class="legend-item">
         <div class="legend-dot" style="background:${CAT_COLORS[cat]||'#888'}"></div>
-        <span style="color:var(--muted)">${CAT_ICONS[cat]} ${cat}</span>
+        <span style="color:var(--muted); display:inline-flex; align-items:center; gap:6px;">${getCategorySVG(cat)} <span style="text-transform: capitalize;">${cat}</span></span>
         <span style="margin-left:auto;font-weight:600">${fmt(val)}</span>
       </div>`).join('');
   }
