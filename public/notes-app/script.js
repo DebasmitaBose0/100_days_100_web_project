@@ -9,6 +9,58 @@ const searchInput = document.getElementById("searchInput");
 const noteCount = document.getElementById("noteCount");
 const greeting = document.getElementById("greeting");
 
+const notesStyle = document.createElement("style");
+notesStyle.innerHTML = `
+  .favorite-btn, .lock-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+  .favorite-btn:hover, .lock-btn:hover {
+    transform: scale(1.2) !important;
+  }
+  .star-svg {
+    width: 22px;
+    height: 22px;
+    fill: rgba(255,255,255,0.22);
+    transition: fill 0.3s, filter 0.3s;
+  }
+  body.light .star-svg {
+    fill: rgba(0,0,0,0.18);
+  }
+  .star-svg.active {
+    fill: #ffb800 !important;
+    filter: drop-shadow(0 0 5px rgba(255, 184, 0, 0.8));
+  }
+  .lock-svg {
+    width: 18px;
+    height: 18px;
+    fill: rgba(255,255,255,0.3);
+    transition: fill 0.3s;
+  }
+  body.light .lock-svg {
+    fill: rgba(0,0,0,0.25);
+  }
+  .lock-svg.active {
+    fill: #ff4a6a !important;
+  }
+  .lock-badge {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 4px;
+  }
+  .lock-badge-svg {
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
+  }
+`;
+document.head.appendChild(notesStyle);
+
 let notes = JSON.parse(localStorage.getItem("notes")) || [];
 
 /* GREETING */
@@ -217,13 +269,13 @@ function renderNotes(type = "all") {
 
       <div class="card">
 
-        ${note.locked ? `<div class="lock-badge">🔒 Locked</div>` : ""}
+        ${note.locked ? `<div class="lock-badge"><svg class="lock-badge-svg" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg> Locked</div>` : ""}
 
         <button
           class="favorite-btn"
           onclick="toggleFavorite(${note.id})"
         >
-          ${note.favorite ? "⭐" : "☆"}
+          ${note.favorite ? `<svg class="star-svg active" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>` : `<svg class="star-svg" viewBox="0 0 24 24"><path d="M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.37L12 6.1l1.71 4.04 4.38.37-3.32 2.88 1 4.28L12 15.4z"/></svg>`}
         </button>
 
 
@@ -231,7 +283,7 @@ function renderNotes(type = "all") {
             class="lock-btn"
             onclick="toggleLock(${note.id})"
          >
-        ${note.locked ? "🔒" : "🔓"}
+        ${note.locked ? `<svg class="lock-svg active" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>` : `<svg class="lock-svg" viewBox="0 0 24 24"><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h1.9c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/></svg>`}
         </button>
 
         <h2>${note.title}</h2>
@@ -395,13 +447,13 @@ searchInput.addEventListener("keyup", () => {
 
       <div class="card">
 
-        ${note.locked ? `<div class="lock-badge">🔒 Locked</div>` : ""}
+        ${note.locked ? `<div class="lock-badge"><svg class="lock-badge-svg" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg> Locked</div>` : ""}
 
         <button
           class="favorite-btn"
           onclick="toggleFavorite(${note.id})"
         >
-          ${note.favorite ? "⭐" : "☆"}
+          ${note.favorite ? `<svg class="star-svg active" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>` : `<svg class="star-svg" viewBox="0 0 24 24"><path d="M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.37L12 6.1l1.71 4.04 4.38.37-3.32 2.88 1 4.28L12 15.4z"/></svg>`}
         </button>
 
         <h2>${note.title}</h2>
