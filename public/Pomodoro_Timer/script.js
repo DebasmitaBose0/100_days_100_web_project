@@ -29,6 +29,7 @@ function genId() { return Date.now().toString(36) + Math.random().toString(36).s
 
 // ─── DOM refs ─────────────────────────────────────────────────────────────────
 const timerDisplay    = document.getElementById('timer');
+const timerCard       = document.getElementById('timerCard');
 const startBtn        = document.getElementById('startBtn');
 const resetBtn        = document.getElementById('resetBtn');
 const skipBtn         = document.getElementById('skipBtn');
@@ -593,6 +594,7 @@ function startTimer() {
     sessionStartRemaining = time;
     startBtn.textContent = (settings.strictMode && currentMode === 'pomodoro') ? 'FOCUS 🔒' : 'PAUSE';
     startBtn.classList.add('running');
+    if (timerCard) timerCard.classList.add('running');
     if (currentTrackId === 'none') scheduleTick();
     applyStrictMode(settings.strictMode);
     timerInterval = setInterval(() => {
@@ -607,6 +609,7 @@ function pauseTimer() {
     clearInterval(timerInterval); stopTick();
     isRunning = false; sessionStartTime = null; sessionStartRemaining = null;
     startBtn.textContent = 'START'; startBtn.classList.remove('running');
+    if (timerCard) timerCard.classList.remove('running');
     skipBtn.disabled = false;
 }
 function resetTimer() {
