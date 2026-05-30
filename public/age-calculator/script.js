@@ -1,6 +1,7 @@
 class AgeCalculator {
   constructor() {
     this.today = new Date();
+    this.animationFrameId = null;
     this.setupEventListeners();
     this.setDefaultDate();
   }
@@ -145,29 +146,43 @@ class AgeCalculator {
       return;
     }
 
-    const age = this.calculateAge(birthDate);
-    const nextBirthday = this.getNextBirthday(birthDate);
-    const zodiac = this.getZodiacSign(
-      birthDate.getMonth() + 1,
-      birthDate.getDate()
-    );
-    const totalDays = Math.floor((today - birthDate) / (1000 * 60 * 60 * 24));
-    const { weeks, hours } = this.getAgeInWeeksAndHours(totalDays);
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
 
-    document.getElementById('years').textContent = age.years;
-    document.getElementById('months').textContent = age.months;
-    document.getElementById('days').textContent = age.days;
-    document.getElementById('next-birthday').textContent =
-      nextBirthday.date.toLocaleDateString();
-    document.getElementById('days-until').textContent =
-      `${nextBirthday.days} days`;
-    document.getElementById('zodiac').textContent = zodiac;
-    document.getElementById('weeks').textContent =
-      `${weeks.toLocaleString()} weeks`;
-    document.getElementById('hours').textContent =
-      `${hours.toLocaleString()} hours`;
+    const updateTicker = () => {
+      const now = new Date();
+      const age = this.calculateAge(birthDate);
+      const nextBirthday = this.getNextBirthday(birthDate);
+      const zodiac = this.getZodiacSign(
+        birthDate.getMonth() + 1,
+        birthDate.getDate()
+      );
+      
+      const totalMs = now - birthDate;
+      const totalDays = Math.floor(totalMs / (1000 * 60 * 60 * 24));
+      const totalWeeks = Math.floor(totalDays / 7);
+      const totalHours = Math.floor(totalMs / (1000 * 60 * 60));
+      const totalSec = Math.floor(totalMs / 1000);
 
-    document.getElementById('result').style.display = 'block';
+      document.getElementById('years').textContent = age.years;
+      document.getElementById('months').textContent = age.months;
+      document.getElementById('days').textContent = age.days;
+      
+      document.getElementById('next-birthday').textContent = nextBirthday.date.toLocaleDateString();
+      document.getElementById('days-until').textContent = `${nextBirthday.days} days`;
+      document.getElementById('zodiac').textContent = zodiac;
+      document.getElementById('weeks').textContent = `${totalWeeks.toLocaleString()} weeks`;
+      document.getElementById('hours').textContent = `${totalHours.toLocaleString()} hours`;
+      document.getElementById('seconds').textContent = `${totalSec.toLocaleString()} seconds`;
+      document.getElementById('milliseconds').textContent = `${totalMs.toLocaleString()} ms`;
+
+      document.getElementById('result').style.display = 'block';
+
+      this.animationFrameId = requestAnimationFrame(updateTicker);
+    };
+
+    updateTicker();
   }
 
   setupEventListeners() {
