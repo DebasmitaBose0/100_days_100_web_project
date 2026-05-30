@@ -49,6 +49,52 @@ let currentIdx  = 0;
 let audioUrl    = '';
 let audioObj    = null;
 
+const recentSearchesContainer = document.getElementById('recentSearches');
+const recentChipsContainer    = document.getElementById('recentChips');
+const HISTORY_LIMIT           = 6;
+
+let searchHistory = loadSearchHistory();
+
+function loadSearchHistory() {
+  try {
+    const history = localStorage.getItem('lexiconSearchHistory');
+    return history ? JSON.parse(history) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveSearchHistory(word) {
+  if (!word || !word.trim()) return;
+  const normalized = word.trim().toLowerCase();
+  searchHistory = [normalized, ...searchHistory.filter(w => w !== normalized)].slice(0, HISTORY_LIMIT);
+  try {
+    localStorage.setItem('lexiconSearchHistory', JSON.stringify(searchHistory));
+  } catch {}
+  renderSearchHistory();
+}
+
+function renderSearchHistory() {
+  if (!recentChipsContainer || !recentSearchesContainer) return;
+  if (searchHistory.length === 0) {
+    hide(recentSearchesContainer);
+    return;
+  }
+  show(recentSearchesContainer);
+  recentChipsContainer.innerHTML = '';
+  searchHistory.forEach(w => {
+    const chip = document.createElement('span');
+    chip.className = 'recent-chip';
+    chip.textContent = w;
+    chip.addEventListener('click', () => {
+      input.value = w;
+      clearBtn.classList.add('visible');
+      fetchWord(w);
+    });
+    recentChipsContainer.appendChild(chip);
+  });
+}
+
 /* ─── Utility ─── */
 function show(el)  { el.classList.remove('hidden'); }
 function hide(el)  { el.classList.add('hidden'); }
@@ -183,18 +229,19 @@ async function fetchWord(word) {
 
     if (!allMeanings.length) throw new Error('no meanings');
 
-    // Audio button
+    // Audio button - always show because we have a voice synthesis fallback!
+    show(audioBtn);
     if (audioUrl) {
-      show(audioBtn);
       audioObj = new Audio(audioUrl);
       audioObj.onended = () => audioBtn.classList.remove('playing');
     } else {
-      hide(audioBtn);
+      audioObj = null;
     }
 
     currentIdx = 0;
     setState('result');
     renderMeaning(currentIdx);
+    saveSearchHistory(word);
 
   } catch {
     errorMsg.textContent = `No results for "${word}". Check the spelling and try again.`;
@@ -217,11 +264,27 @@ clearBtn.addEventListener('click', () => {
   input.focus();
 });
 audioBtn.addEventListener('click', () => {
-  if (!audioObj) return;
-  audioObj.currentTime = 0;
-  audioObj.play();
   audioBtn.classList.add('playing');
+  if (audioObj) {
+    audioObj.currentTime = 0;
+    audioObj.play().catch(() => speakText(wordEl.textContent));
+  } else {
+    speakText(wordEl.textContent);
+  }
 });
+
+function speakText(text) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.onend = () => audioBtn.classList.remove('playing');
+    utterance.onerror = () => audioBtn.classList.remove('playing');
+    window.speechSynthesis.speak(utterance);
+  } else {
+    audioBtn.classList.remove('playing');
+  }
+}
 prevBtn.addEventListener('click', () => {
   if (currentIdx > 0) { currentIdx--; renderMeaning(currentIdx); }
 });
@@ -277,3 +340,5 @@ document.addEventListener('keydown', e => {
     input.select();
   }
 });
+
+renderSearchHistory();
