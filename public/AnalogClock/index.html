@@ -58,20 +58,34 @@
                 <div class="clock-header">
                     <h2 class="clock-label" id="local-title">Local Time</h2>
                     <p class="clock-sublabel" id="local-tz-label">Your Location</p>
+                    <select id="mainTzSelector" class="clock-select-input" aria-label="Select city timezone">
+                        <option value="local">Local Time (Your Location)</option>
+                        <option value="America/New_York">New York (EST / EDT)</option>
+                        <option value="Europe/London">London (GMT / BST)</option>
+                        <option value="Asia/Tokyo">Tokyo (JST)</option>
+                        <option value="Asia/Kolkata">New Delhi (IST)</option>
+                    </select>
+                    <div class="movement-toggle-row">
+                        <span>Hands:</span>
+                        <button id="handMovementBtn" class="movement-toggle-btn active">Sweeping</button>
+                    </div>
                 </div>
                 
-                <div class="clock-frame">
-                    <div class="clock-face">
-                        <!-- Curved sapphire reflection glare -->
-                        <div class="clock-glass"></div>
-                        
-                        <!-- Watch hands -->
-                        <div class="hand hour" id="local-hour"></div>
-                        <div class="hand minute" id="local-minute"></div>
-                        <div class="hand second" id="local-second"></div>
-                        
-                        <!-- Center metallic rivet cap -->
-                        <div class="center-pin"></div>
+                <div class="clock-frame-container" style="position: relative; z-index: 2;">
+                    <div class="ambient-glow-backlight" id="local-ambient-backlight"></div>
+                    <div class="clock-frame">
+                        <div class="clock-face">
+                            <!-- Curved sapphire reflection glare -->
+                            <div class="clock-glass"></div>
+                            
+                            <!-- Watch hands -->
+                            <div class="hand hour" id="local-hour"></div>
+                            <div class="hand minute" id="local-minute"></div>
+                            <div class="hand second" id="local-second"></div>
+                            
+                            <!-- Center metallic rivet cap -->
+                            <div class="center-pin"></div>
+                        </div>
                     </div>
                 </div>
                 

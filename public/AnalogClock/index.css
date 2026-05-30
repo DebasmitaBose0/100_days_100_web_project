@@ -45,6 +45,78 @@
     --toggle-moon-color: #4b5563;
 }
 
+/* Timezone Select Selector */
+.clock-select-input {
+    width: 100%;
+    max-width: 220px;
+    height: 40px;
+    padding: 0 16px;
+    border-radius: 12px;
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--shadow-btn);
+    outline: none;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+}
+.clock-select-input:hover {
+    box-shadow: var(--shadow-btn-hover);
+}
+
+/* Movement Toggles row */
+.movement-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+.movement-toggle-btn {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-btn);
+    padding: 6px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+.movement-toggle-btn:hover {
+    box-shadow: var(--shadow-btn-hover);
+    transform: translateY(-1px);
+}
+.movement-toggle-btn.active {
+    box-shadow: var(--shadow-btn-active);
+    color: var(--accent-color);
+}
+
+/* Ambient Backlight Glow */
+.ambient-glow-backlight {
+    position: absolute;
+    top: 5%;
+    left: 5%;
+    width: 90%;
+    height: 90%;
+    border-radius: 50%;
+    filter: blur(40px);
+    z-index: 0;
+    opacity: 0.2;
+    transition: background 1.5s ease-in-out, opacity 1s ease;
+    pointer-events: none;
+}
+body.dark-theme .ambient-glow-backlight {
+    opacity: 0.45;
+}
+
 body.dark-theme {
     --bg-color: #080c14; /* Much deeper midnight black-blue */
     --text-primary: #f9fafb;

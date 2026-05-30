@@ -1,11 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
-    // 1. Clock Elements Mapping
+    // 1. Clock Elements Mapping & Global State
     // ----------------------------------------------------
+    const clockState = {
+        mainTz: 'local',
+        isSweeping: true
+    };
+
     const clocks = [
         {
             id: 'local',
-            timeZone: null, // Local time
+            timeZone: null, // Custom timezone dynamic centerpiece
             hourHand: document.getElementById('local-hour'),
             minuteHand: document.getElementById('local-minute'),
             secondHand: document.getElementById('local-second'),
@@ -41,17 +46,57 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     ];
 
+    const mainTzSelector = document.getElementById('mainTzSelector');
+    const handMovementBtn = document.getElementById('handMovementBtn');
+    
+    const bannerImages = {
+        'local': 'taj_mahal.png',
+        'America/New_York': 'new_york.png',
+        'Europe/London': 'london.png',
+        'Asia/Tokyo': 'tokyo.png',
+        'Asia/Kolkata': 'taj_mahal.png'
+    };
+
+    const timezoneLabels = {
+        'local': { title: 'Local Time', tz: 'Your Location' },
+        'America/New_York': { title: 'New York Time', tz: 'EST / EDT' },
+        'Europe/London': { title: 'London Time', tz: 'GMT / BST' },
+        'Asia/Tokyo': { title: 'Tokyo Time', tz: 'JST' },
+        'Asia/Kolkata': { title: 'New Delhi Time', tz: 'IST' }
+    };
+
+    if (mainTzSelector) {
+        mainTzSelector.addEventListener('change', (e) => {
+            clockState.mainTz = e.target.value;
+            const localTitle = document.getElementById('local-title');
+            const localTzLabel = document.getElementById('local-tz-label');
+            const mainClockBanner = document.querySelector('.main-clock-section .clock-banner');
+            
+            const labels = timezoneLabels[clockState.mainTz];
+            if (localTitle) localTitle.textContent = labels.title;
+            if (localTzLabel) localTzLabel.textContent = labels.tz;
+            if (mainClockBanner) {
+                mainClockBanner.style.backgroundImage = `url('${bannerImages[clockState.mainTz]}')`;
+            }
+        });
+    }
+
+    if (handMovementBtn) {
+        handMovementBtn.addEventListener('click', () => {
+            clockState.isSweeping = !clockState.isSweeping;
+            handMovementBtn.classList.toggle('active', clockState.isSweeping);
+            handMovementBtn.textContent = clockState.isSweeping ? 'Sweeping' : 'Ticking';
+        });
+    }
+
     // ----------------------------------------------------
     // 2. Programmatic Clock Ticks Generator
     // ----------------------------------------------------
     function generateTicks() {
         const clockFaces = document.querySelectorAll('.clock-face');
         clockFaces.forEach(face => {
-            // Remove existing ticks to prevent duplication on multiple initializations
             const existingTicks = face.querySelectorAll('.tick');
             existingTicks.forEach(tick => tick.remove());
-
-            // 12 Ticks around the clock face
             for (let i = 0; i < 12; i++) {
                 const tick = document.createElement('div');
                 tick.classList.add('tick');
@@ -68,18 +113,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ----------------------------------------------------
     // 3. Dynamic Timezone Offsets Engine
-    // Calculates offset (ms) relative to local browser time
     // ----------------------------------------------------
     const offsets = {
         ny: 0,
         london: 0,
-        tokyo: 0
+        tokyo: 0,
+        kolkata: 0
     };
 
     function calculateTimezoneOffset(timeZone) {
         const now = new Date();
         try {
-            // Format current instant to string in target timezone and browser local timezone
             const tzString = now.toLocaleString("en-US", { timeZone, hour12: false });
             const localString = now.toLocaleString("en-US", { hour12: false });
             
@@ -97,63 +141,77 @@ document.addEventListener('DOMContentLoaded', () => {
         offsets.ny = calculateTimezoneOffset('America/New_York');
         offsets.london = calculateTimezoneOffset('Europe/London');
         offsets.tokyo = calculateTimezoneOffset('Asia/Tokyo');
+        offsets.kolkata = calculateTimezoneOffset('Asia/Kolkata');
     }
 
-    // Refresh timezone offsets on startup and every 60 seconds (captures DST transitions gracefully)
     refreshOffsets();
     setInterval(refreshOffsets, 60000);
 
     // ----------------------------------------------------
-    // 4. High-Performance 60 FPS Sweep Animation Loop
-    // Calculates exact angle rotation down to the millisecond
+    // 4. High-Performance 60 FPS Sweep / Tick Animation Loop
     // ----------------------------------------------------
     function animateClocks() {
         const now = new Date();
         const localMs = now.getMilliseconds();
-        const localSec = now.getSeconds() + localMs / 1000;
-        const localMin = now.getMinutes() + localSec / 60;
-        const localHr = (now.getHours() % 12) + localMin / 60;
-
+        
         clocks.forEach(clock => {
             let hr, min, sec;
             let displayHr, displayMin, displaySec;
             let dateText;
 
             if (clock.id === 'local') {
-                hr = localHr;
-                min = localMin;
-                sec = localSec;
-                displayHr = now.getHours();
-                displayMin = now.getMinutes();
-                displaySec = now.getSeconds();
-                dateText = now.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+                let targetTime = now;
+                if (clockState.mainTz !== 'local') {
+                    const offset = clockState.mainTz === 'America/New_York' ? offsets.ny :
+                                   clockState.mainTz === 'Europe/London' ? offsets.london :
+                                   clockState.mainTz === 'Asia/Tokyo' ? offsets.tokyo :
+                                   clockState.mainTz === 'Asia/Kolkata' ? offsets.kolkata : 0;
+                    targetTime = new Date(now.getTime() + offset);
+                }
+                const ms = targetTime.getMilliseconds();
+                displayHr = targetTime.getHours();
+                displayMin = targetTime.getMinutes();
+                displaySec = targetTime.getSeconds();
+
+                sec = clockState.isSweeping ? (displaySec + ms / 1000) : displaySec;
+                min = displayMin + sec / 60;
+                hr = (displayHr % 12) + min / 60;
+                
+                dateText = targetTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+
+                // Update Ambient Backlight dynamically based on centerpiece timezone hour!
+                const ambient = document.getElementById('local-ambient-backlight');
+                if (ambient) {
+                    if (displayHr >= 6 && displayHr < 18) {
+                        ambient.style.background = 'rgba(251, 191, 36, 0.4)'; // Gold daytime
+                    } else {
+                        ambient.style.background = 'rgba(99, 102, 241, 0.5)'; // Indigo nighttime
+                    }
+                }
             } else {
-                // Apply the pre-calculated offset for ultra-fast arithmetic
                 const offset = offsets[clock.id] || 0;
                 const targetTime = new Date(now.getTime() + offset);
                 const ms = targetTime.getMilliseconds();
 
-                sec = targetTime.getSeconds() + ms / 1000;
-                min = targetTime.getMinutes() + sec / 60;
-                hr = (targetTime.getHours() % 12) + min / 60;
-                
                 displayHr = targetTime.getHours();
                 displayMin = targetTime.getMinutes();
                 displaySec = targetTime.getSeconds();
+
+                sec = clockState.isSweeping ? (displaySec + ms / 1000) : displaySec;
+                min = displayMin + sec / 60;
+                hr = (displayHr % 12) + min / 60;
+                
                 dateText = targetTime.toLocaleDateString("en-US", { weekday: 'short', month: 'short', day: 'numeric' });
             }
 
-            // Calculate exact rotation angles
-            const hRotation = hr * 30;      // 360deg / 12hr = 30deg/hr
-            const mRotation = min * 6;      // 360deg / 60min = 6deg/min
-            const sRotation = sec * 6;      // 360deg / 60sec = 6deg/sec
+            const hRotation = hr * 30;
+            const mRotation = min * 6;
+            const sRotation = sec * 6;
 
-            // Update DOM Styles instantly without transitions (guarantees buttery continuous sweep)
             if (clock.hourHand) clock.hourHand.style.transform = `rotate(${hRotation}deg)`;
             if (clock.minuteHand) clock.minuteHand.style.transform = `rotate(${mRotation}deg)`;
             if (clock.secondHand) clock.secondHand.style.transform = `rotate(${sRotation}deg)`;
 
-            // Format digital string safely (prevents layout shifts on variable character widths)
             if (clock.digital) {
                 const padH = String(displayHr).padStart(2, '0');
                 const padM = String(displayMin).padStart(2, '0');
@@ -161,17 +219,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 clock.digital.textContent = `${padH}:${padM}:${padS}`;
             }
 
-            // Update Date only on change to avoid DOM repaint overhead
             if (clock.date && clock.date.textContent !== dateText) {
                 clock.date.textContent = dateText;
             }
         });
 
-        // Request next frame at 60 FPS
         requestAnimationFrame(animateClocks);
     }
 
-    // Launch the continuous clock animation loop
     requestAnimationFrame(animateClocks);
 
     // ----------------------------------------------------
