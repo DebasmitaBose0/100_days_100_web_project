@@ -239,34 +239,45 @@
         .dice-display {
             display: flex;
             justify-content: center;
-            gap: 16px;
+            gap: 28px;
             margin: 32px 0;
             flex-wrap: wrap;
-            min-height: 120px;
+            min-height: 140px;
         }
 
-        .dice-wrap {
-            width: 110px;
-            height: 110px;
+        /* ── 3D CSS Dice ── */
+        .cube-container {
+            width: 100px;
+            height: 100px;
+            perspective: 600px;
         }
 
-        .dice-wrap.rolling svg {
-            animation: rollDice 0.65s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-        }
-
-        @keyframes rollDice {
-            0%   { transform: rotate(0deg) scale(1); }
-            20%  { transform: rotate(-25deg) scale(1.06); }
-            50%  { transform: rotate(370deg) scale(0.95); }
-            75%  { transform: rotate(340deg) scale(1.03); }
-            100% { transform: rotate(360deg) scale(1); }
-        }
-
-        .dice-wrap svg {
+        .cube {
             width: 100%;
             height: 100%;
-            filter: drop-shadow(0 4px 12px rgba(0,0,0,.18));
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
         }
+
+        .cube-face {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 16px;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .cube-face.front  { transform: rotateY(0deg) translateZ(50px); }
+        .cube-face.back   { transform: rotateY(180deg) translateZ(50px); }
+        .cube-face.right  { transform: rotateY(90deg) translateZ(50px); }
+        .cube-face.left   { transform: rotateY(-90deg) translateZ(50px); }
+        .cube-face.top    { transform: rotateX(90deg) translateZ(50px); }
+        .cube-face.bottom { transform: rotateX(-90deg) translateZ(50px); }
 
         /* ── Result message ── */
         .result-message {
@@ -508,15 +519,47 @@
     // ── Roll ──
     document.getElementById('rollBtn').addEventListener('click', rollDice);
 
+    const CUBE_ROTATIONS = {
+        1: 'rotateX(0deg) rotateY(0deg)',
+        2: 'rotateX(-90deg) rotateY(0deg)',
+        3: 'rotateX(0deg) rotateY(-90deg)',
+        4: 'rotateX(0deg) rotateY(90deg)',
+        5: 'rotateX(90deg) rotateY(0deg)',
+        6: 'rotateX(180deg) rotateY(0deg)'
+    };
+
     function renderDice() {
         const display = document.getElementById('diceDisplay');
         display.innerHTML = '';
         for (let i = 0; i < state.diceCount; i++) {
-            const wrap = document.createElement('div');
-            wrap.className = 'dice-wrap';
-            wrap.id = `dice-${i}`;
-            wrap.innerHTML = buildDiceSVG(state.rolls[i] || null, state.diceColor);
-            display.appendChild(wrap);
+            const container = document.createElement('div');
+            container.className = 'cube-container';
+            
+            const cube = document.createElement('div');
+            cube.className = 'cube';
+            cube.id = `cube-${i}`;
+            
+            const faces = [
+                { name: 'front', value: 1 },
+                { name: 'back', value: 6 },
+                { name: 'right', value: 3 },
+                { name: 'left', value: 4 },
+                { name: 'top', value: 2 },
+                { name: 'bottom', value: 5 }
+            ];
+            
+            faces.forEach(f => {
+                const faceDiv = document.createElement('div');
+                faceDiv.className = `cube-face ${f.name}`;
+                faceDiv.innerHTML = buildDiceSVG(f.value, state.diceColor);
+                cube.appendChild(faceDiv);
+            });
+            
+            const initialVal = state.rolls[i] || 1;
+            cube.style.transform = CUBE_ROTATIONS[initialVal];
+            
+            container.appendChild(cube);
+            display.appendChild(container);
         }
     }
 
@@ -528,22 +571,26 @@
         const rm = document.getElementById('resultMessage');
         rm.classList.remove('show');
 
-        renderDice();
-
-        const wraps = document.querySelectorAll('.dice-wrap');
-        wraps.forEach(w => { w.classList.remove('rolling'); void w.offsetWidth; w.classList.add('rolling'); });
+        const cubes = document.querySelectorAll('.cube');
+        cubes.forEach(cube => {
+            const spinX = Math.floor(Math.random() * 720) + 720;
+            const spinY = Math.floor(Math.random() * 720) + 720;
+            cube.style.transition = 'transform 0.65s cubic-bezier(0.2, 0.8, 0.3, 1.1)';
+            cube.style.transform = `rotateX(${spinX}deg) rotateY(${spinY}deg)`;
+        });
 
         playDiceSound(state.diceCount);
 
         setTimeout(() => {
             const newRolls = [];
             let total = 0;
-            wraps.forEach(wrap => {
+            cubes.forEach((cube, index) => {
                 const r = Math.floor(Math.random() * 6) + 1;
                 newRolls.push(r);
                 total += r;
                 state.distribution[r]++;
-                wrap.innerHTML = buildDiceSVG(r, state.diceColor);
+                cube.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                cube.style.transform = CUBE_ROTATIONS[r];
             });
             state.rolls = newRolls;
             updateStats();
@@ -606,10 +653,18 @@
 
         const dist = document.getElementById('distribution');
         dist.innerHTML = '';
+        
+        const counts = Object.values(state.distribution);
+        const totalDistributionCount = counts.reduce((a, b) => a + b, 0);
+
         for (let i = 1; i <= 6; i++) {
-            dist.innerHTML += `<div class="dist-item">
-                <div class="dist-number">${i}</div>
-                <div class="dist-tally">${buildTallySVG(state.distribution[i])}</div>
+            const count = state.distribution[i];
+            const pct = totalDistributionCount ? ((count / totalDistributionCount) * 100).toFixed(0) : 0;
+            dist.innerHTML += `<div class="dist-item" style="position:relative; overflow:hidden; min-height:85px; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:1;">
+                <div class="dist-bar" style="position:absolute; bottom:0; left:0; width:100%; height:${pct}%; background:rgba(186, 225, 255, 0.15); z-index:0; transition: height 0.3s ease;"></div>
+                <div class="dist-number" style="position:relative; z-index:1; font-weight:800; font-size:1.1em;">${i}</div>
+                <div class="dist-tally" style="position:relative; z-index:1;">${buildTallySVG(count)}</div>
+                <div class="dist-pct" style="position:relative; z-index:1; font-size:0.75em; color:var(--text-secondary); margin-top:2px;">${pct}%</div>
             </div>`;
         }
     }
