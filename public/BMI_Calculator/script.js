@@ -160,6 +160,11 @@ function calculateBMI() {
     return;
   }
 
+  if (age && (age <= 0 || age > 120)) {
+    showError("Please enter a realistic age between 1 and 120.");
+    return;
+  }
+
   /* =========================
      UNIT CONVERSIONS
   ========================= */
