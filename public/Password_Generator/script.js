@@ -47,8 +47,23 @@ function handleSlider() {
 }
 
 function setIndicator(color) {
-    indicator.style.backgroundColor = color;
-    indicator.style.boxShadow = `0px 0px 12px 1px ${color}`;
+    let activeCount = 1;
+    if (color === "#00f076") activeCount = 4;
+    else if (color === "#22d3ee" || color === "#0f0") activeCount = 3;
+    else if (color === "#ffd966" || color === "#ff0") activeCount = 2;
+    else if (color === "#ff4d4d" || color === "#f00") activeCount = 1;
+    else activeCount = 1;
+
+    const segments = document.querySelectorAll(".bar-segment");
+    segments.forEach((seg, index) => {
+        if (index < activeCount) {
+            seg.style.backgroundColor = color;
+            seg.style.boxShadow = `0px 0px 8px ${color}`;
+        } else {
+            seg.style.backgroundColor = "rgba(255, 255, 255, 0.15)";
+            seg.style.boxShadow = "none";
+        }
+    });
     if (lengthDisplay) lengthDisplay.style.color = color;
 }
 
@@ -145,23 +160,28 @@ function generateFromCustomWord(word) {
 }
 
 function calcStrength() {
-    let hasUpper = false;
-    let hasLower = false;
-    let hasNum = false;
-    let hasSym = false;
-    if (uppercaseCheck.checked) hasUpper = true;
-    if (lowercaseCheck.checked) hasLower = true;
-    if (numbersCheck.checked) hasNum = true;
-    if (symbolsCheck.checked) hasSym = true;
+    let hasUpper = uppercaseCheck.checked;
+    let hasLower = lowercaseCheck.checked;
+    let hasNum = numbersCheck.checked;
+    let hasSym = symbolsCheck.checked;
 
-    if (hasUpper && hasLower && (hasNum || hasSym) && passwordLength >= 8) {
-        setIndicator("#0f0");
+    let checkedCount = 0;
+    if (hasUpper) checkedCount++;
+    if (hasLower) checkedCount++;
+    if (hasNum) checkedCount++;
+    if (hasSym) checkedCount++;
+
+    if (hasUpper && hasLower && hasNum && hasSym && passwordLength >= 12) {
+        setIndicator("#00f076");
+        strengthText.innerText = "Excellent";
+    } else if (hasUpper && hasLower && (hasNum || hasSym) && passwordLength >= 8) {
+        setIndicator("#22d3ee");
         strengthText.innerText = "Strong";
-    } else if ((hasLower || hasUpper) && (hasNum || hasSym) && passwordLength >= 6) {
-        setIndicator("#ff0");
+    } else if (checkedCount >= 2 && passwordLength >= 6) {
+        setIndicator("#ffd966");
         strengthText.innerText = "Medium";
     } else {
-        setIndicator("#f00");
+        setIndicator("#ff4d4d");
         strengthText.innerText = "Weak";
     }
     updateSuggestions();
@@ -176,7 +196,7 @@ function updateSuggestions() {
     const suggestions = [];
     const strength = (strengthText && strengthText.innerText) ? strengthText.innerText : '';
 
-    if (strength === 'Strong') {
+    if (strength === 'Strong' || strength === 'Excellent') {
         suggestionBox.innerText = '';
         return;
     }
