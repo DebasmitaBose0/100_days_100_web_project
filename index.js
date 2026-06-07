@@ -699,10 +699,12 @@ function renderGrid() {
 
     fragment.appendChild(card);
   });
-  grid.appendChild(fragment);
-  renderPagination(filtered.length, totalPages);
-  
-  syncStateToURL();
+
+  requestAnimationFrame(() => {
+    grid.appendChild(fragment);
+    renderPagination(filtered.length, totalPages);
+    syncStateToURL();
+  });
 }
 
 function renderPagination(totalItems, totalPages) {
