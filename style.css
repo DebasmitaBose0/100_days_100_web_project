@@ -378,10 +378,13 @@ body.light-mode .navbar {
   }
 
   .nav-buttons.active {
-    max-height: 500px;
+    /* Use viewport-relative max-height to avoid overflow on short devices */
+    max-height: calc(100vh - 80px);
     opacity: 1;
     transform: translateY(0);
     margin-top: 1rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .btn {
